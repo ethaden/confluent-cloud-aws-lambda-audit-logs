@@ -1,0 +1,8 @@
+ccloud_audit_log_bootstrap_server = "<your audit log bootstrap server>"
+ccloud_audit_log_api_key = {
+  key = "<your audit log API key>",
+  secret = "<your audit log API secret>"
+}
+#tf_last_updated = "2024-07-16T18:26:59+00:00"
+#ccloud_cluster_generate_client_config_files = true
+#aws_lambda_trigger_enabled = false

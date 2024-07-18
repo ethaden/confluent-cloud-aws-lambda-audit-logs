@@ -1,0 +1,22 @@
+# Common files
+*.backup
+
+# Ignore Gradle project-specific cache directory
+.gradle
+
+# Ignore Gradle build output directory
+build
+
+# Ignore Confluent Cloud API Keys
+api-key.txt
+
+# Terraform
+terraform/*/terraform.tfvars
+terraform/*/files
+terraform/*/*.tfstate
+terraform/*/.terraform
+terraform/*/.terraform.lock.hcl
+terraform/*/aws-remote-tfstate-s3.tf
+terraform/java/terraform.tfstate.backup
+terraform/test/*.conf
+terraform/*/generated

@@ -1,0 +1,87 @@
+{
+    "datacontenttype": "application/json",
+    "data": {
+        "serviceName": "crn://confluent.cloud/",
+        "methodName": "ksql.Authorize",
+        "cloudResources": [
+            {
+                "scope": {
+                    "resources": [
+                        {
+                            "type": "ORGANIZATION",
+                            "resourceId": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"
+                        },
+                        {
+                            "type": "ENVIRONMENT",
+                            "resourceId": "env-aabbcc"
+                        },
+                        {
+                            "type": "CLOUD_CLUSTER",
+                            "resourceId": "lkc-aabbcc"
+                        }
+                    ]
+                },
+                "resource": {
+                    "type": "KSQL",
+                    "resourceId": "ksqlDB_cluster_0"
+                }
+            }
+        ],
+        "authenticationInfo": {
+            "principal": {
+                "confluentServiceAccount": {
+                    "resourceId": "sa-aabbcc"
+                }
+            },
+            "result": "SUCCESS"
+        },
+        "authorizationInfo": {
+            "result": "ALLOW",
+            "operation": "Contribute",
+            "rbacAuthorization": {
+                "role": "CCloudKsqlHealthChecker",
+                "cloudScope": {
+                    "resources": [
+                        {
+                            "type": "ORGANIZATION",
+                            "resourceId": "aaaaaaaa-bbbb-cccc-dddd-000000000000"
+                        },
+                        {
+                            "type": "ENVIRONMENT",
+                            "resourceId": "env-aabbcc"
+                        },
+                        {
+                            "type": "CLOUD_CLUSTER",
+                            "resourceId": "lkc-aabbcc"
+                        },
+                        {
+                            "type": "KSQL_CLUSTER",
+                            "resourceId": "ksqlDB_cluster_0"
+                        }
+                    ]
+                },
+                "resourceType": "KsqlCluster",
+                "patternType": "LITERAL",
+                "patternName": "*",
+                "operation": "Contribute"
+            },
+            "resourceName": "ksqlDB_cluster_0",
+            "resourceType": "KsqlCluster"
+        },
+        "requestMetadata": {
+            "requestId": [
+                "zzzzzzzz-yyyy-xxxx-wwww-vvvvvvvvvvvv"
+            ]
+        },
+        "request": {
+            "accessType": "READ_ONLY"
+        },
+        "resourceName": "crn://confluent.cloud/organization=aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee/environment=env-aabbcc/cloud-cluster=lkc-aabbcc/ksql=ksqlDB_cluster_0"
+    },
+    "subject": "crn://confluent.cloud/organization=aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee/environment=env-aabbcc/cloud-cluster=lkc-aabbcc/ksql=ksqlDB_cluster_0",
+    "specversion": "1.0",
+    "id": "eeeeeeee-ffff-gggg-hhhh-iiiiiiiiiiii",
+    "source": "crn://confluent.cloud/",
+    "time": "2024-07-11T16:58:47.489588114Z",
+    "type": "io.confluent.ksql.server/authorization"
+}
