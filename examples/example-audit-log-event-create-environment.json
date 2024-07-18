@@ -1,0 +1,38 @@
+{
+    "datacontenttype": "application/json",
+    "data": {
+        "serviceName": "crn://confluent.cloud/",
+        "methodName": "mds.Authorize",
+        "resourceName": "crn://confluent.cloud/organization=aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
+        "authenticationInfo": {
+            "principal": "User:u-aabbcc"
+        },
+        "authorizationInfo": {
+            "granted": true,
+            "operation": "CreateEnvironment",
+            "resourceType": "Organization",
+            "resourceName": "organization",
+            "patternType": "LITERAL",
+            "rbacAuthorization": {
+                "role": "OrganizationAdmin",
+                "scope": {
+                    "outerScope": [
+                        "organization=aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"
+                    ]
+                }
+            }
+        },
+        "request": {
+            "correlation_id": "-1"
+        },
+        "requestMetadata": {
+            "request_id": "zzzzzzzz-yyyy-xxxx-wwww-yyyyyyyyyyyy"
+        }
+    },
+    "subject": "crn://confluent.cloud/organization=aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
+    "specversion": "1.0",
+    "id": "aaaaaaaa-bbbb-cccc-dddd-tttttttttttt",
+    "source": "crn://confluent.cloud/",
+    "time": "2024-07-11T16:40:48.283387686Z",
+    "type": "io.confluent.kafka.server/authorization"
+}
