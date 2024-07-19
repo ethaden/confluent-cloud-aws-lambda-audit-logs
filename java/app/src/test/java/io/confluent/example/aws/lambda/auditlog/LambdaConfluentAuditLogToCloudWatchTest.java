@@ -3,113 +3,67 @@
  */
 package io.confluent.example.aws.lambda.auditlog;
 
-import java.util.Map;
+import java.util.Base64;
+import java.util.Base64.Encoder;
 import java.util.Arrays;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 import com.amazonaws.services.lambda.runtime.events.KafkaEvent;
 import com.amazonaws.services.lambda.runtime.events.KafkaEvent.KafkaEventRecord;
 import com.google.gson.Gson;
-import io.confluent.examples.auditlog.ConfluentCloudAuditLogSchema;
+import com.google.gson.JsonObject;
 
 class LambdaConfluentAuditLogToCloudWatchTest {
+    private String exampleEvent = "{\n" + //
+    "    \"datacontenttype\": \"application/json\",\n" + //
+    "    \"data\": {\n" + //
+    "        \"serviceName\": \"crn://confluent.cloud/\",\n" + //
+    "        \"methodName\": \"mds.Authorize\",\n" + //
+    "        \"resourceName\": \"crn://confluent.cloud/organization=aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee\",\n" + //
+    "        \"authenticationInfo\": {\n" + //
+    "            \"principal\": \"User:u-aabbcc\"\n" + //
+    "        },\n" + //
+    "        \"authorizationInfo\": {\n" + //
+    "            \"granted\": true,\n" + //
+    "            \"operation\": \"CreateEnvironment\",\n" + //
+    "            \"resourceType\": \"Organization\",\n" + //
+    "            \"resourceName\": \"organization\",\n" + //
+    "            \"patternType\": \"LITERAL\",\n" + //
+    "            \"rbacAuthorization\": {\n" + //
+    "                \"role\": \"OrganizationAdmin\",\n" + //
+    "                \"scope\": {\n" + //
+    "                    \"outerScope\": [\n" + //
+    "                        \"organization=aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee\"\n" + //
+    "                    ]\n" + //
+    "                }\n" + //
+    "            }\n" + //
+    "        },\n" + //
+    "        \"request\": {\n" + //
+    "            \"correlation_id\": \"-1\"\n" + //
+    "        },\n" + //
+    "        \"requestMetadata\": {\n" + //
+    "            \"request_id\": \"zzzzzzzz-yyyy-xxxx-wwww-yyyyyyyyyyyy\"\n" + //
+    "        }\n" + //
+    "    },\n" + //
+    "    \"subject\": \"crn://confluent.cloud/organization=aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee\",\n" + //
+    "    \"specversion\": \"1.0\",\n" + //
+    "    \"id\": \"aaaaaaaa-bbbb-cccc-dddd-tttttttttttt\",\n" + //
+    "    \"source\": \"crn://confluent.cloud/\",\n" + //
+    "    \"time\": \"2024-07-11T16:40:48.283387686Z\",\n" + //
+    "    \"type\": \"io.confluent.kafka.server/authorization\"\n" + //
+    "}\n" + //
+    "";
+
     @Test void appDeserializes() {
-        String exampleEvent = "{\n" + //
-                        "    \"datacontenttype\": \"application/json\",\n" + //
-                        "    \"data\": {\n" + //
-                        "        \"serviceName\": \"crn://confluent.cloud/\",\n" + //
-                        "        \"methodName\": \"ksql.Authorize\",\n" + //
-                        "        \"cloudResources\": [\n" + //
-                        "            {\n" + //
-                        "                \"scope\": {\n" + //
-                        "                    \"resources\": [\n" + //
-                        "                        {\n" + //
-                        "                            \"type\": \"ORGANIZATION\",\n" + //
-                        "                            \"resourceId\": \"aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee\"\n" + //
-                        "                        },\n" + //
-                        "                        {\n" + //
-                        "                            \"type\": \"ENVIRONMENT\",\n" + //
-                        "                            \"resourceId\": \"env-aabbcc\"\n" + //
-                        "                        },\n" + //
-                        "                        {\n" + //
-                        "                            \"type\": \"CLOUD_CLUSTER\",\n" + //
-                        "                            \"resourceId\": \"lkc-aabbcc\"\n" + //
-                        "                        }\n" + //
-                        "                    ]\n" + //
-                        "                },\n" + //
-                        "                \"resource\": {\n" + //
-                        "                    \"type\": \"KSQL\",\n" + //
-                        "                    \"resourceId\": \"ksqlDB_cluster_0\"\n" + //
-                        "                }\n" + //
-                        "            }\n" + //
-                        "        ],\n" + //
-                        "        \"authenticationInfo\": {\n" + //
-                        "            \"principal\": {\n" + //
-                        "                \"confluentServiceAccount\": {\n" + //
-                        "                    \"resourceId\": \"sa-aabbcc\"\n" + //
-                        "                }\n" + //
-                        "            },\n" + //
-                        "            \"result\": \"SUCCESS\"\n" + //
-                        "        },\n" + //
-                        "        \"authorizationInfo\": {\n" + //
-                        "            \"result\": \"ALLOW\",\n" + //
-                        "            \"operation\": \"Contribute\",\n" + //
-                        "            \"rbacAuthorization\": {\n" + //
-                        "                \"role\": \"CCloudKsqlHealthChecker\",\n" + //
-                        "                \"cloudScope\": {\n" + //
-                        "                    \"resources\": [\n" + //
-                        "                        {\n" + //
-                        "                            \"type\": \"ORGANIZATION\",\n" + //
-                        "                            \"resourceId\": \"aaaaaaaa-bbbb-cccc-dddd-000000000000\"\n" + //
-                        "                        },\n" + //
-                        "                        {\n" + //
-                        "                            \"type\": \"ENVIRONMENT\",\n" + //
-                        "                            \"resourceId\": \"env-aabbcc\"\n" + //
-                        "                        },\n" + //
-                        "                        {\n" + //
-                        "                            \"type\": \"CLOUD_CLUSTER\",\n" + //
-                        "                            \"resourceId\": \"lkc-aabbcc\"\n" + //
-                        "                        },\n" + //
-                        "                        {\n" + //
-                        "                            \"type\": \"KSQL_CLUSTER\",\n" + //
-                        "                            \"resourceId\": \"ksqlDB_cluster_0\"\n" + //
-                        "                        }\n" + //
-                        "                    ]\n" + //
-                        "                },\n" + //
-                        "                \"resourceType\": \"KsqlCluster\",\n" + //
-                        "                \"patternType\": \"LITERAL\",\n" + //
-                        "                \"patternName\": \"*\",\n" + //
-                        "                \"operation\": \"Contribute\"\n" + //
-                        "            },\n" + //
-                        "            \"resourceName\": \"ksqlDB_cluster_0\",\n" + //
-                        "            \"resourceType\": \"KsqlCluster\"\n" + //
-                        "        },\n" + //
-                        "        \"requestMetadata\": {\n" + //
-                        "            \"requestId\": [\n" + //
-                        "                \"zzzzzzzz-yyyy-xxxx-wwww-vvvvvvvvvvvv\"\n" + //
-                        "            ]\n" + //
-                        "        },\n" + //
-                        "        \"request\": {\n" + //
-                        "            \"accessType\": \"READ_ONLY\"\n" + //
-                        "        },\n" + //
-                        "        \"resourceName\": \"crn://confluent.cloud/organization=aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee/environment=env-aabbcc/cloud-cluster=lkc-aabbcc/ksql=ksqlDB_cluster_0\"\n" + //
-                        "    },\n" + //
-                        "    \"subject\": \"crn://confluent.cloud/organization=aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee/environment=env-aabbcc/cloud-cluster=lkc-aabbcc/ksql=ksqlDB_cluster_0\",\n" + //
-                        "    \"specversion\": \"1.0\",\n" + //
-                        "    \"id\": \"eeeeeeee-ffff-gggg-hhhh-iiiiiiiiiiii\",\n" + //
-                        "    \"source\": \"crn://confluent.cloud/\",\n" + //
-                        "    \"time\": \"2024-07-11T16:58:47.489588114Z\",\n" + //
-                        "    \"type\": \"io.confluent.ksql.server/authorization\"\n" + //
-                        "}\n" + //
-                        "";
-        Gson gson = new Gson();
-        ConfluentCloudAuditLogSchema auditLogEvent = gson.fromJson(exampleEvent, ConfluentCloudAuditLogSchema.class);
-        System.out.println(auditLogEvent);
-        String json = gson.toJson(auditLogEvent);
-        LambdaConfluentAuditLogToCloudWatch app = new LambdaConfluentAuditLogToCloudWatch();
+
+        //Gson gson = new Gson();
+        //JsonObject auditLogEvent = gson.fromJson(exampleEvent, JsonObject.class);
         KafkaEventRecord record = new KafkaEventRecord();
-        record.setValue(json);
+        Encoder base64Encoder = Base64.getEncoder();
+        record.setValue(base64Encoder.encodeToString(exampleEvent.getBytes()));
         KafkaEvent event = new KafkaEvent();
         event.setRecords(Map.of("1", Arrays.asList(record)));
+        LambdaConfluentAuditLogToCloudWatch app = new LambdaConfluentAuditLogToCloudWatch();
         app.handleRequest(event, null);
     }
 }

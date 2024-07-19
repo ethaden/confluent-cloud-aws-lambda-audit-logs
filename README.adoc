@@ -20,13 +20,10 @@ gradle wrapper
 
 You should now have zip file containing the compiled Lambda in `java/app/build/distributions/app.zip`.
 
-== Updating the Audit Log JSON Schema
+== Audit Log JSON Schema
 
-It might be necessary to update the Confluent Cloud Audit Log JSON schema. The most recent version can be found here: https://docs.confluent.io/cloud/current/monitoring/audit-logging/audit-log-schema.html#audit-log-event-schema-file
-
-In order to update the source code, put the most recent JSON schema into this file `java/app/src/main/json/confluent-cloud-audit-log-schema.json`.
-
-Then rebuild and redeploy the Lambda.
+For conveniance, we provide the latest version of the JSON Audig Log Schema in the `docs` folder.
+The most recent version can be found here: https://docs.confluent.io/cloud/current/monitoring/audit-logging/audit-log-schema.html#audit-log-event-schema-file
 
 == Setting up the Confluent Cloud and AWS infrastrucure
 

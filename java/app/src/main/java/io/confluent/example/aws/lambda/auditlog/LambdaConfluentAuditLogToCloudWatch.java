@@ -10,7 +10,9 @@ import com.amazonaws.services.lambda.runtime.LambdaLogger;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.amazonaws.services.lambda.runtime.events.KafkaEvent;
 import com.google.gson.Gson;
-import io.confluent.examples.auditlog.ConfluentCloudAuditLogSchema;
+import com.google.gson.JsonObject;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class LambdaConfluentAuditLogToCloudWatch implements RequestHandler<KafkaEvent, Void> {
 
@@ -24,25 +26,20 @@ public class LambdaConfluentAuditLogToCloudWatch implements RequestHandler<Kafka
         Decoder base64Decoder = Base64.getDecoder();
         if (context != null) {
             LambdaLogger logger = context.getLogger();
-            //logger.log("EVENT TYPE: " + event.getClass());
-            //logger.log("EVENT: " + event.toString());
             event.getRecords().forEach((k, v) -> {
                 v.forEach((record) -> {
-                    //logger.log(record.getValue());
-                    ConfluentCloudAuditLogSchema auditLogEvent = gson.fromJson(new String(base64Decoder.decode(record.getValue())), ConfluentCloudAuditLogSchema.class);
+                    JsonObject auditLogEvent = gson.fromJson(new String(base64Decoder.decode(record.getValue())), JsonObject.class);
                     logger.log("Audit Log Event: "+auditLogEvent.toString());
                 });
             });
-            //logger.log(event.toString());
         } else {
-            // event.getRecords().forEach((k, v) -> {
-            //     v.forEach((record) -> {
-            //         //logger.log(k+" IS "+v.getValue().toString());
-            //         System.out.println(record.getValue());
-            //         ConfluentCloudAuditLogSchema auditLogEvent = gson.fromJson(record.getValue(), Customer.class);
-            //         System.out.println("Audit Log Event: "+auditLogEvent.toString());
-            //     });
-            // });
+            final Logger logger = LogManager.getRootLogger();
+            event.getRecords().forEach((k, v) -> {
+                v.forEach((record) -> {
+                    JsonObject auditLogEvent = gson.fromJson(new String(base64Decoder.decode(record.getValue())), JsonObject.class);
+                    logger.info("Audit Log Event: "+auditLogEvent.toString());
+                });
+            });
         }
         return null;
     }

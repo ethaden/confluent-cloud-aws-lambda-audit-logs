@@ -8,7 +8,6 @@
 plugins {
     // Apply the application plugin to add support for building a CLI application in Java.
     application
-    id("org.jsonschema2pojo") version "1.2.1"
 }
 
 repositories {
@@ -21,7 +20,8 @@ dependencies {
     implementation("com.amazonaws:aws-lambda-java-core:1.2.2")
     implementation("com.amazonaws:aws-lambda-java-events:3.11.1")
     runtimeOnly("com.amazonaws:aws-lambda-java-log4j2:1.5.1")
-    implementation("com.fasterxml.jackson.core:jackson-databind:2.15.2")
+    implementation("org.apache.logging.log4j:log4j-api:2.23.1")
+    implementation("org.apache.logging.log4j:log4j-core:2.23.1")
     // Use JUnit Jupiter for testing.
     testImplementation(libs.junit.jupiter)
 
@@ -61,14 +61,4 @@ tasks {
     build {
         dependsOn(zipTask)
     }
-}
-
-jsonSchema2Pojo {
-  targetPackage = "io.confluent.examples.auditlog"
-  setSource(files("src/main/json"))
-  targetDirectory = file(layout.buildDirectory.dir("generated-sources/jsonschema2pojo"))
-  setAnnotationStyle("jackson2")
-  formatTypeMapping = hashMapOf(
-    "uuid" to "java.lang.String"
-  )
 }
