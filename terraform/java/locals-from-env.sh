@@ -11,9 +11,9 @@ if [ -z "${CONFLUENT_CLOUD_API_KEY}" -o -z "${CONFLUENT_CLOUD_API_SECRET}" ]; th
     export CONFLUENT_CLOUD_API_KEY=$(grep "API key:$" -A 1 ${CONFLUENT_API_KEY_FILE} | sed -n "2p")
     export CONFLUENT_CLOUD_API_SECRET=$(grep "API secret:$" -A 1 ${CONFLUENT_API_KEY_FILE} | sed -n "2p")
   # Comment the next three lines if this project does not use Confluent Cloud
-  else
-    printf "Please set environment variables CONFLUENT_CLOUD_API_KEY and CONFLUENT_CLOUD_API_SECRET or provide an API file ${CONFLUENT_API_KEY_FILE} as exported during creation by the confluent website\n" >&2
-    exit 1
+  #else
+  #  printf "Please set environment variables CONFLUENT_CLOUD_API_KEY and CONFLUENT_CLOUD_API_SECRET or provide an API file ${CONFLUENT_API_KEY_FILE} as exported during creation by the confluent website\n" >&2
+  #  exit 1
   fi
 fi
 

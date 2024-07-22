@@ -27,6 +27,9 @@ dependencies {
 
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 
+    // AWS
+    implementation("software.amazon.awssdk:cloudwatchlogs:2.1.0")
+
     // This dependency is used by the application.
     implementation(libs.guava)
 }

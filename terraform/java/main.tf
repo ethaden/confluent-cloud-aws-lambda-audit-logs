@@ -47,6 +47,11 @@ resource "aws_cloudwatch_log_group" "example_kafka_lambda_audit_log_log_group" {
   retention_in_days = 7
 }
 
+resource "aws_cloudwatch_log_group" "aws_lambda_cloudwatch_audit_log_group" {
+  name              = "${var.aws_lambda_cloudwatch_audit_log_group}"
+  retention_in_days = 7
+}
+
 # The Lambda needs to have an execution role which acts as its identity at runtime. It is required for accessing additional AWS resources
 data "aws_iam_policy_document" "assume_role" {
   statement {
@@ -74,7 +79,10 @@ data "aws_iam_policy_document" "write_to_cloudwatch_policy_document" {
       "logs:PutLogEvents",
     ]
     resources = [
-        "${aws_cloudwatch_log_group.example_kafka_lambda_audit_log_log_group.arn}:*"
+        # First ARN specifies the log group used for logging the output (stdout and stderr) of the Lambda
+        "${aws_cloudwatch_log_group.example_kafka_lambda_audit_log_log_group.arn}:*",
+        # Second ARN specified the custom log group where the Lambda writes the auditlog event to
+        "${aws_cloudwatch_log_group.aws_lambda_cloudwatch_audit_log_group.arn}:*"
     ]
   }
 }

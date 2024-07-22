@@ -105,3 +105,9 @@ variable "aws_lambda_trigger_enabled" {
     default = true
     description = "Set this to false to disable the trigger for this lambda. This has been added for making testing more convenienty"
 }
+
+variable "aws_lambda_cloudwatch_audit_log_group" {
+    type = string
+    default = "/confluent/example/auditlog"
+    description = "The CloudWatch group to write audit log data to. If you chance the default, update the source code, too."
+}

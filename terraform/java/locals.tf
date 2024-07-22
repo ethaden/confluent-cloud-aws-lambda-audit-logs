@@ -17,10 +17,10 @@ locals {
         divvy_last_modified_by = var.owner_email!="" ? var.owner_email : data.external.env.result["owner_email"]
     }
     # Comment the next four lines if this project is not using Confluent Cloud
-    confluent_creds = {
-        api_key = data.external.env.result["api_key"]
-        api_secret = data.external.env.result["api_secret"]
-    }
+    #confluent_creds = {
+    #    api_key = data.external.env.result["api_key"]
+    #    api_secret = data.external.env.result["api_secret"]
+    #}
 
     public_ssh_key = var.public_ssh_key!="" ? var.public_ssh_key : data.external.env.result["public_ssh_key"]
     username = var.username!="" ? var.username : data.external.env.result["user"]

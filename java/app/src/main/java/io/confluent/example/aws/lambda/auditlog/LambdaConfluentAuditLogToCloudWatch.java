@@ -3,22 +3,76 @@
  */
 package io.confluent.example.aws.lambda.auditlog;
 
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Base64.Decoder;
+import java.util.Iterator;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.joda.time.DateTime;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.LambdaLogger;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.amazonaws.services.lambda.runtime.events.KafkaEvent;
+import com.amazonaws.services.lambda.runtime.events.KafkaEvent.KafkaEventRecord;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import software.amazon.awssdk.services.cloudwatchlogs.CloudWatchLogsClient;
+import software.amazon.awssdk.services.cloudwatchlogs.model.DescribeLogStreamsRequest;
+import software.amazon.awssdk.services.cloudwatchlogs.model.DescribeLogStreamsResponse;
+import software.amazon.awssdk.services.cloudwatchlogs.model.InputLogEvent;
+import software.amazon.awssdk.services.cloudwatchlogs.model.PutLogEventsRequest;
+import software.amazon.awssdk.services.cloudwatchlogs.model.PutLogEventsRequest.Builder;
+import software.amazon.awssdk.services.cloudwatchlogs.model.PutLogEventsResponse;
 
 public class LambdaConfluentAuditLogToCloudWatch implements RequestHandler<KafkaEvent, Void> {
 
-    Gson gson = new Gson();
+    final Gson gson = new Gson();
+    final CloudWatchLogsClient cloudwatchClient = CloudWatchLogsClient.create();
+
+    final int maxCloudWatchEventRequestsPerBatch = 10;
+    final String cloudwatchLogGroupName = "/confluent/example/auditlog";
+    final String cloudwatchLogStreamName = "auditlog";
+    String sequenceToken = null;
+
     public LambdaConfluentAuditLogToCloudWatch() {
 
+    }
+
+    private String getSequenceToken() {
+        if (this.sequenceToken!=null) {
+            return this.sequenceToken;
+        }
+        DescribeLogStreamsRequest logStreamRequest = DescribeLogStreamsRequest.builder()
+                .logGroupName(cloudwatchLogGroupName)
+                .logStreamNamePrefix(cloudwatchLogStreamName)
+                .build();
+
+        DescribeLogStreamsResponse describeLogStreamsResponse = cloudwatchClient.describeLogStreams(logStreamRequest);
+
+        // Assume that a single stream is returned since a specific stream name was
+        // specified in the previous request.
+        return describeLogStreamsResponse.logStreams().get(0).uploadSequenceToken();
+    }
+
+    private InputLogEvent createInputLogEvent(String eventJson) {
+        JsonObject auditLogEvent = gson.fromJson(eventJson, JsonObject.class);
+        DateTime timestamp = DateTime.parse(auditLogEvent.get("time").getAsString());
+        return InputLogEvent.builder().timestamp(timestamp.getMillis()).message(eventJson).build();
+    }
+
+    private void putLogEvents(ArrayList<InputLogEvent> events) {
+        Builder builder = PutLogEventsRequest.builder();
+        String previousSequenceToken = getSequenceToken();
+        if (previousSequenceToken!=null) {
+            builder.sequenceToken(previousSequenceToken);
+        }
+        builder
+            .logGroupName(cloudwatchLogGroupName)
+            .logEvents(events);
+        PutLogEventsRequest request = builder.build();
+        PutLogEventsResponse response = cloudwatchClient.putLogEvents(request);
+        this.sequenceToken = response.nextSequenceToken();
     }
 
     @Override
@@ -27,17 +81,28 @@ public class LambdaConfluentAuditLogToCloudWatch implements RequestHandler<Kafka
         if (context != null) {
             LambdaLogger logger = context.getLogger();
             event.getRecords().forEach((k, v) -> {
-                v.forEach((record) -> {
-                    JsonObject auditLogEvent = gson.fromJson(new String(base64Decoder.decode(record.getValue())), JsonObject.class);
-                    logger.log("Audit Log Event: "+auditLogEvent.toString());
-                });
+                ArrayList<InputLogEvent> logEvents = new ArrayList<>();
+
+                for (Iterator<KafkaEventRecord> it = v.iterator(); it.hasNext();) {
+                    KafkaEventRecord record = it.next();
+                    String logEventStr = new String(base64Decoder.decode(record.getValue()));
+                    InputLogEvent logEvent = createInputLogEvent(logEventStr);
+                    logEvents.add(logEvent);
+                    if (logEvents.size() == maxCloudWatchEventRequestsPerBatch || !it.hasNext()) {
+                        logger.log("Sending events to CloudWatch");
+                        putLogEvents(logEvents);
+                        logEvents.clear();
+                    }
+                    logger.log("Audit Log Event: " + logEventStr);
+                }
             });
         } else {
             final Logger logger = LogManager.getRootLogger();
             event.getRecords().forEach((k, v) -> {
                 v.forEach((record) -> {
-                    JsonObject auditLogEvent = gson.fromJson(new String(base64Decoder.decode(record.getValue())), JsonObject.class);
-                    logger.info("Audit Log Event: "+auditLogEvent.toString());
+                    JsonObject auditLogEvent = gson.fromJson(
+                            new String(base64Decoder.decode(record.getValue())), JsonObject.class);
+                    logger.info("Audit Log Event: " + auditLogEvent.toString());
                 });
             });
         }
@@ -45,6 +110,6 @@ public class LambdaConfluentAuditLogToCloudWatch implements RequestHandler<Kafka
     }
 
     public static void main(String[] args) {
-        //new App().handleRequest(Map.of("Lambda!", null), null);
+        // new App().handleRequest(Map.of("Lambda!", null), null);
     }
 }
